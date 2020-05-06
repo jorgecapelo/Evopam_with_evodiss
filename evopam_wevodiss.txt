@@ -1,5 +1,6 @@
-# EVOPAM : A modification of Isopam by Schmidtlein 2015 to incorporate phylogeny in similarity: Pavoine's et al. 2014  evodiss in adiv
-# by Jorge Capelo 2019
+# EVOPAM : A modification of Isopam by Schmidtlein 2015 to incorporate phylogeny in similarity 
+# by the use of  Pavoine's et al. 2014  evodiss in adiv
+# Jorge Capelo 2019
 library(ape)
 library(adiv)
 library(vegan)
