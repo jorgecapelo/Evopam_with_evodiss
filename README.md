@@ -1,2 +1,2 @@
-# Evopam_with_evodiss
-Modification of Isopam by Schmidtlein 2015 to incorporate evodiss of Pavoine 2014
+# Modification of Isopam by Schmidtlein 2015 to incorporate phylosim of Nipperess 2010 & evodiss of Pavoine 2014
+
