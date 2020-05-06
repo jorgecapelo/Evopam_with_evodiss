@@ -1,4 +1,4 @@
-# EVOPAM : A modification of Isopam by Schmidtlein 2015 to incorporate phylogenetiy in similarity indexes 
+# EVOPAM : A modification of Isopam by Schmidtlein 2015 to incorporate phylogeny in similarity indexes 
 # (Nipperess' et al 2010 phylosim & Pavoine's et al. 2014  evodiss in adiv)
 # by Jorge Capelo 2019
 library(ape)
