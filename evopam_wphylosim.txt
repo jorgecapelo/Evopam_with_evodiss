@@ -1,3 +1,4 @@
+# Evopam as a modification of Schmidtlein's 2015 Isopam to use phylogeny in similarity by using Nipperess' et al 2010 phylosim
 library(ape)
 library(vegan)
 library(cluster)
