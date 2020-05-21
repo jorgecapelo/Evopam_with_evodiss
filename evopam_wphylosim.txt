@@ -6,6 +6,114 @@ library(compiler)
 dat<-read.csv("dat.csv",row.names = 1)
 dat<-as.data.frame(dat)
 phyl<-read.tree("phyl.tre")
+phylosim <- function (x, phy, incidence = T, method = "sorensen") {
+
+METHODS <- c("sorensen", "jaccard", "simpson", "faith")
+method <- pmatch(method, METHODS)
+
+### step 1: trimming the tree to match the community data table thus creating a "community tree" (sensu Cam Webb). Este passo é dispensável se os táxones da tabela e árbore newick forem os mesmos
+
+if (length(phy$tip.label) > length(x[1,])) {
+	phy <- drop.tip (phy, which(!phy$tip.label %in% colnames(x))) }
+
+# script is modified from that of Paradis (2006) "Analysis of Phylogenetics and Evolution with R", Springer.
+
+### step 2: converting a community tree into a MRP matrix
+
+# A MRP matrix, used in supertree methods, is where the membership of an OTU in a clade spanned by a branch is indicated by a 0 (no) or 1 (yes). Unlike supertree MRP matrices, our matrix includes terminal branches.
+# the new phylo object model for ape 2.0 broke the original code. The following replaces that code.
+
+phylomatrix <- matrix (0, length(phy$tip.label), length(phy$edge.length))
+for (i in 1:length(phy$tip.label)) {
+	lineage <- which (phy$edge[,2] == i)
+	node <- phy$edge[lineage,1]
+	while (node > length(phy$tip.label)+1) {
+		branch <- which (phy$edge[,2] == node)
+		lineage <- c (lineage, branch)
+		node <- phy$edge[branch,1]
+		}
+	phylomatrix[i,lineage] = 1
+	}
+
+# this script fills a matrix of 0's with 1's corresponding to the incidence of an OTU on a particular branch.
+# the code is pretty slow on large trees.
+
+### step 3: re-ordering the OTUs of the occurrence table and MRP matrix to match.
+
+phylomatrix <- phylomatrix[sort.list(phy$tip.label), ]
+x <- x[ ,sort.list(colnames(x))]
+
+# data are sorted to a common ordering standard, that is alphabetic order, so that OTUs match up.
+
+### step 4: creating a community phylogeny matrix from a MRP matrix and an occurrence matrix
+
+x <- as.matrix (x)
+commphylo <- x %*% phylomatrix
+
+# the above code performs simple matrix multiplication to produce a composite branch by sample matrix (the community phylogeny matrix) where each cell now contains either OTU richness or total abundance for each branch in each sample.
+
+### step 5 (optional): converting a community phylogeny matrix into an incidence (0/1) form. Em princípio não quero isto, saltar este passo.
+
+if (incidence == T) {
+	commphylo <- ifelse (commphylo > 0, 1, 0) }
+
+### step 6: calculating shared diversity (a)
+
+a <- matrix (data = NA, nrow = length(x[ ,1]), ncol = length(x[ ,1]))
+for (i in 1:length(x[ ,1])) {
+		for (j in 1:length(x[ ,1])) {
+			a[i,j] = sum (phy$edge.length * pmin (commphylo[i, ], commphylo[j, ])) }
+		}
+
+### step 7: calculating unshared diversity (b)
+
+b <- matrix (data = NA, nrow = length(x[ ,1]), ncol = length(x[ ,1]))
+for (i in 1:length(x[ ,1])) {
+		for (j in 1:length(x[ ,1])) {
+			b[i,j] = sum (phy$edge.length * (pmax(commphylo[i, ], commphylo[j, ]) - commphylo[j, ])) }
+		}
+
+### step 8: calculating unshared diversity (c)
+
+c <- matrix (data = NA, nrow = length(x[ ,1]), ncol = length(x[ ,1]))
+for (i in 1:length(x[ ,1])) {
+		for (j in 1:length(x[ ,1])) {
+			c[i,j] = sum (phy$edge.length * (pmax(commphylo[i, ], commphylo[j, ]) - commphylo[i, ])) }
+		}
+
+### step 9: calculating absent diversity (d)
+
+d <- matrix (data = NA, nrow = length(x[ ,1]), ncol = length(x[ ,1]))
+maxabundance <- vector (mode = "numeric", length = length(commphylo[1, ]))
+for (i in 1:length(commphylo[1, ])) {
+	maxabundance[i] = max(commphylo[,i])
+	}
+for (i in 1:length(x[ ,1])) {
+		for (j in 1:length(x[ ,1])) {
+			d[i,j] = sum (phy$edge.length * (maxabundance - pmax(commphylo[i, ], commphylo[j,]))) }
+		}
+
+### step 10: calculating the pairwise similarity Index of samples
+
+if (method == 1) {
+        pdsim <- (2 * a)/((2 * a) + b + c)
+    }
+    else if (method == 2) {
+        pdsim <- a/(a + b + c)
+    }
+    else if (method == 3) {
+        pdsim <- a/(a + pmin(b,c))
+    }
+    else if (method == 4) {
+        pdsim <- (a + (0.5 * d))/(a + b + c + d)
+    }
+
+rownames (pdsim) <- rownames (x)
+colnames (pdsim) <- rownames (x)
+pdsim <- as.dist (pdsim)
+
+return (pdsim)
+}
 isopam <-
   function (dat, c.fix = FALSE, c.opt = TRUE, c.max = 6, 
             l.max = FALSE, stopat = c(1,7), sieve = TRUE, 
