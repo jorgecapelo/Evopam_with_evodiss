@@ -1,3 +1,3 @@
 # Modification of Isopam by Schmidtlein 2015 to incorporate phylosim of Nipperess 2010 & evodiss of Pavoine 2014
 # See Capelo, J. (2020), Using species abundance and phylogeny conjointly to approach vegetation classification. A case‐study on Macaronesia’s woody vegetation. J Veg Sci. Accepted Author Manuscript. doi:10.1111/jvs.12886
-
+Data is not that of the afforemented article. Instead its and example file of ca. more or less ad hoc 1700 relevés ok iberian oak forest taken from a public data base (sivim). The computation of the modified isopam ('evopam') took circa 4 hours in an HPC computer with four Xeon Gold processors (64 cores, 128 threads, and 1 Tb of RAM, so be careful with computation time.
